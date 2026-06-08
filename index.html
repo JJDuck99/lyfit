@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0f1115">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>LY Fit</title>
+<link rel="manifest" href="manifest.json">
+<style>
+  :root{
+    --bg:#0f1115; --card:#1a1d24; --card2:#22262f; --line:#2c313b;
+    --txt:#e8eaed; --dim:#9aa0aa; --accent:#4ade80; --accent2:#38bdf8;
+    --warn:#fbbf24; --bad:#f87171; --radius:14px;
+  }
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0}
+  html,body{background:var(--bg);color:var(--txt);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;overscroll-behavior:none}
+  body{padding-bottom:84px;max-width:520px;margin:0 auto;min-height:100vh}
+  h1,h2,h3{font-weight:700}
+  .pad{padding:16px}
+  .header{padding:18px 16px 8px;display:flex;justify-content:space-between;align-items:baseline}
+  .header h1{font-size:22px;letter-spacing:-.5px}
+  .header .date{color:var(--dim);font-size:13px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin:12px 16px}
+  .card h2{font-size:15px;text-transform:uppercase;letter-spacing:.5px;color:var(--dim);margin-bottom:12px}
+  .row{display:flex;align-items:center;gap:10px}
+  .between{justify-content:space-between}
+  .btn{background:var(--accent);color:#06281a;border:none;border-radius:10px;padding:13px 16px;font-size:15px;font-weight:700;cursor:pointer;flex:1;text-align:center}
+  .btn:active{transform:scale(.97)}
+  .btn.sec{background:var(--card2);color:var(--txt);border:1px solid var(--line)}
+  .btn.blue{background:var(--accent2);color:#04222e}
+  .btn.sm{padding:9px 12px;font-size:13px;flex:none}
+  .btn.ghost{background:transparent;color:var(--dim);border:1px solid var(--line)}
+  input,select{background:var(--card2);border:1px solid var(--line);color:var(--txt);border-radius:10px;padding:12px;font-size:16px;width:100%;outline:none}
+  input:focus,select:focus{border-color:var(--accent2)}
+  label{font-size:12px;color:var(--dim);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+  .pill{background:var(--card2);border:1px solid var(--line);border-radius:20px;padding:7px 13px;font-size:13px;white-space:nowrap;cursor:pointer}
+  .pill:active{background:var(--accent);color:#06281a}
+  .scroll-x{display:flex;gap:8px;overflow-x:auto;padding:2px 0 4px;-webkit-overflow-scrolling:touch}
+  .scroll-x::-webkit-scrollbar{display:none}
+  .setrow{display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid var(--line)}
+  .setrow:last-child{border-bottom:none}
+  .setnum{width:26px;height:26px;background:var(--card2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--dim);flex:none}
+  .muted{color:var(--dim);font-size:13px}
+  .big{font-size:28px;font-weight:800;letter-spacing:-1px}
+  .tiny{font-size:11px;color:var(--dim);text-transform:uppercase;letter-spacing:.5px}
+  .bar{height:9px;background:var(--card2);border-radius:6px;overflow:hidden;margin-top:7px}
+  .bar > div{height:100%;border-radius:6px;transition:width .3s}
+  .tabbar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:520px;background:#14171d;border-top:1px solid var(--line);display:flex;padding:8px 6px calc(8px + env(safe-area-inset-bottom));z-index:50}
+  .tab{flex:1;text-align:center;padding:6px;color:var(--dim);font-size:11px;cursor:pointer;font-weight:600}
+  .tab.on{color:var(--accent)}
+  .tab .ic{font-size:21px;display:block;margin-bottom:2px}
+  .hide{display:none!important}
+  .chip{display:inline-block;background:var(--card2);border:1px solid var(--line);border-radius:8px;padding:4px 9px;font-size:12px;margin:2px}
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:flex-end;justify-content:center;z-index:100}
+  .sheet{background:var(--card);width:100%;max-width:520px;border-radius:18px 18px 0 0;padding:18px 16px calc(18px + env(safe-area-inset-bottom));max-height:88vh;overflow-y:auto}
+  .sheet h3{font-size:18px;margin-bottom:14px}
+  .ex-item{padding:13px;border:1px solid var(--line);border-radius:10px;margin-bottom:8px;cursor:pointer}
+  .ex-item:active{border-color:var(--accent)}
+  .ex-item .nm{font-weight:700;font-size:15px}
+  .ex-item .last{font-size:12px;color:var(--accent2);margin-top:3px}
+  .timer{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:var(--accent2);color:#04222e;padding:10px 18px;border-radius:30px;font-weight:800;font-size:16px;box-shadow:0 6px 20px rgba(0,0,0,.4);z-index:60;cursor:pointer}
+  .del{color:var(--bad);background:none;border:none;font-size:18px;padding:4px 8px;cursor:pointer;flex:none}
+  .empty{text-align:center;color:var(--dim);padding:30px 16px;font-size:14px}
+  .seg{display:flex;background:var(--card2);border-radius:10px;padding:3px;gap:3px}
+  .seg button{flex:1;padding:9px;border:none;background:none;color:var(--dim);font-weight:700;font-size:13px;border-radius:8px;cursor:pointer}
+  .seg button.on{background:var(--accent);color:#06281a}
+  a{color:var(--accent2)}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div><h1>LY Fit</h1></div>
+  <div class="date" id="todayDate"></div>
+</div>
+
+<!-- ============ WORKOUT TAB ============ -->
+<div id="view-workout">
+  <div class="card">
+    <div class="row between">
+      <h2 style="margin:0">Today's Session</h2>
+      <span class="muted" id="sessionMeta"></span>
+    </div>
+    <div id="sessionExercises" style="margin-top:10px"></div>
+    <div class="row" style="margin-top:14px;gap:10px">
+      <button class="btn" onclick="openExercisePicker()">+ Add Exercise</button>
+      <button class="btn sec sm" onclick="startTimer(90)">⏱ Rest</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Recent Sessions</h2>
+    <div id="recentSessions"></div>
+  </div>
+</div>
+
+<!-- ============ FOOD TAB ============ -->
+<div id="view-food" class="hide">
+  <div class="card">
+    <h2>Today — Targets</h2>
+    <div class="row between" style="align-items:flex-end">
+      <div>
+        <div class="tiny">Protein</div>
+        <div class="big" id="protTotal" style="color:var(--accent)">0<span style="font-size:15px;color:var(--dim)">/130g</span></div>
+      </div>
+      <div style="text-align:right">
+        <div class="tiny">Calories</div>
+        <div class="big" id="kcalTotal" style="color:var(--accent2)">0<span style="font-size:15px;color:var(--dim)">/2700</span></div>
+      </div>
+    </div>
+    <div class="bar"><div id="protBar" style="width:0%;background:var(--accent)"></div></div>
+    <div class="bar"><div id="kcalBar" style="width:0%;background:var(--accent2)"></div></div>
+  </div>
+
+  <div class="card">
+    <h2>Quick Add</h2>
+    <div class="scroll-x" id="foodFavs"></div>
+  </div>
+
+  <div class="card">
+    <div class="row between"><h2 style="margin:0">Today's Food</h2>
+      <button class="btn blue sm" onclick="openFoodAdd()">+ Add</button></div>
+    <div id="foodList" style="margin-top:10px"></div>
+  </div>
+</div>
+
+<!-- ============ STATS TAB ============ -->
+<div id="view-stats" class="hide">
+  <div class="card">
+    <h2>Bodyweight</h2>
+    <div class="row between" style="align-items:flex-end">
+      <div class="big" id="bwCurrent">73<span style="font-size:15px;color:var(--dim)">kg</span></div>
+      <button class="btn sec sm" onclick="openWeighIn()">Log weigh-in</button>
+    </div>
+    <div id="bwHistory" style="margin-top:12px"></div>
+  </div>
+
+  <div class="card">
+    <h2>Baseline (PT Session 1 — 4 Jun)</h2>
+    <div class="muted" style="line-height:1.9">
+      <div class="row between"><span>Chest press (working)</span><b style="color:var(--txt)">~22 kg</b></div>
+      <div class="row between"><span>Lat pull-down (working)</span><b style="color:var(--txt)">~17 kg</b></div>
+      <div class="row between"><span>Push-ups</span><b style="color:var(--txt)">15 → <span style="color:var(--accent)">20</span></b></div>
+      <div class="row between"><span>Step test HR</span><b style="color:var(--warn)">138 → 100 bpm</b></div>
+      <div class="row between"><span>Wall sit</span><b style="color:var(--txt)">1m 11s</b></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Goals</h2>
+    <div>
+      <span class="chip">1 · Hypertrophy / muscle mass</span>
+      <span class="chip">2 · Upper strength</span>
+      <span class="chip">3 · Functional</span>
+      <span class="chip" style="border-color:var(--accent2)">Protein 130g/day</span>
+      <span class="chip" style="border-color:var(--accent2)">Cardio (lower step-HR)</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Data</h2>
+    <div class="grid2">
+      <button class="btn ghost sm" style="flex:1" onclick="exportData()">Export JSON</button>
+      <button class="btn ghost sm" style="flex:1" onclick="exportCSV()">Export CSV</button>
+    </div>
+    <div class="muted" style="margin-top:10px;font-size:12px">Data is stored on this device. Export regularly to back up, or paste the JSON back to your Claude vault.</div>
+  </div>
+</div>
+
+<!-- ============ TAB BAR ============ -->
+<div class="tabbar">
+  <div class="tab on" data-tab="workout" onclick="switchTab('workout')"><span class="ic">🏋️</span>Workout</div>
+  <div class="tab" data-tab="food" onclick="switchTab('food')"><span class="ic">🍗</span>Food</div>
+  <div class="tab" data-tab="stats" onclick="switchTab('stats')"><span class="ic">📊</span>Stats</div>
+</div>
+
+<div id="timerEl" class="timer hide" onclick="stopTimer()"></div>
+<div id="modalRoot"></div>
+
+<script>
+// ============ DATA LAYER ============
+const DB_KEY = 'lyfit_v1';
+const todayStr = () => new Date().toISOString().slice(0,10);
+const niceDate = d => new Date(d+'T00:00').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'});
+
+const DEFAULTS = {
+  bodyweight: 73,
+  targets: { protein: 130, kcal: 2700 },
+  exerciseLib: [
+    {name:'Incline Chest Press', cat:'Chest', start:22},
+    {name:'Flat Chest Press', cat:'Chest', start:22},
+    {name:'Lat Pull-down', cat:'Back', start:17},
+    {name:'Seated Row', cat:'Back', start:17},
+    {name:'Push-ups', cat:'Chest', start:0, bodyweight:true},
+    {name:'Shoulder Press', cat:'Shoulders', start:12},
+    {name:'Lateral Raise', cat:'Shoulders', start:6},
+    {name:'Bicep Curl', cat:'Arms', start:8},
+    {name:'Tricep Pushdown', cat:'Arms', start:15},
+    {name:'Leg Press', cat:'Legs', start:40},
+    {name:'Romanian Deadlift', cat:'Legs', start:20},
+    {name:'Goblet Squat', cat:'Legs', start:12},
+    {name:'Leg Curl', cat:'Legs', start:15},
+    {name:'Calf Raise', cat:'Legs', start:20},
+    {name:'Plank', cat:'Core', start:0, bodyweight:true, time:true},
+    {name:'Battle Rope', cat:'Conditioning', start:0, bodyweight:true, time:true},
+  ],
+  foodFavs: [
+    {name:'Chicken breast 150g', p:45, k:240},
+    {name:'2 eggs', p:13, k:140},
+    {name:'Whey scoop', p:25, k:120},
+    {name:'Greek yogurt 170g', p:17, k:100},
+    {name:'Milk 250ml', p:8, k:120},
+    {name:'Tofu 150g', p:12, k:115},
+    {name:'Fish 150g', p:35, k:200},
+    {name:'Rice 1 bowl', p:4, k:240},
+    {name:'Beef 150g', p:39, k:280},
+    {name:'Tuna can', p:25, k:110},
+  ],
+  sessions: [],   // {id, date, exercises:[{name, sets:[{w,r,rpe}]}]}
+  food: [],       // {id, date, name, p, k}
+  weights: [],    // {date, kg}
+};
+
+function load(){
+  try{ const d = JSON.parse(localStorage.getItem(DB_KEY)); return d ? {...structuredClone(DEFAULTS), ...d} : structuredClone(DEFAULTS);}
+  catch(e){ return structuredClone(DEFAULTS); }
+}
+function save(){ localStorage.setItem(DB_KEY, JSON.stringify(db)); }
+let db = load();
+const uid = () => Math.random().toString(36).slice(2,9);
+
+// ============ SESSION HELPERS ============
+function todaySession(){
+  let s = db.sessions.find(x => x.date === todayStr());
+  if(!s){ s = {id:uid(), date:todayStr(), exercises:[]}; db.sessions.unshift(s); save(); }
+  return s;
+}
+function lastDoneFor(exName){
+  for(const s of db.sessions){
+    if(s.date === todayStr()) continue;
+    const ex = s.exercises.find(e => e.name === exName);
+    if(ex && ex.sets.length){ const best = ex.sets[ex.sets.length-1]; return {date:s.date, set:best}; }
+  }
+  return null;
+}
+
+// ============ RENDER: WORKOUT ============
+function renderWorkout(){
+  const s = todaySession();
+  const totalSets = s.exercises.reduce((n,e)=>n+e.sets.length,0);
+  document.getElementById('sessionMeta').textContent = totalSets ? `${s.exercises.length} ex · ${totalSets} sets` : 'empty';
+  const wrap = document.getElementById('sessionExercises');
+  if(!s.exercises.length){ wrap.innerHTML = '<div class="empty">No exercises yet.<br>Tap “Add Exercise” to start logging.</div>'; }
+  else {
+    wrap.innerHTML = s.exercises.map((e,ei)=>{
+      const lib = db.exerciseLib.find(l=>l.name===e.name) || {};
+      const isTime = lib.time, isBw = lib.bodyweight && !lib.time;
+      const last = lastDoneFor(e.name);
+      const lastTxt = last ? `last ${niceDate(last.date)}: ${fmtSet(last.set,lib)}` : 'no history';
+      const setsHtml = e.sets.map((st,si)=>`
+        <div class="setrow">
+          <span class="setnum">${si+1}</span>
+          <span style="flex:1">${fmtSet(st,lib)}</span>
+          <button class="del" onclick="delSet(${ei},${si})">×</button>
+        </div>`).join('');
+      return `<div class="card2-block" style="background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px">
+        <div class="row between"><b style="font-size:15px">${e.name}</b>
+          <button class="del" onclick="delExercise(${ei})">🗑</button></div>
+        <div class="last" style="font-size:12px;color:var(--accent2);margin:3px 0 6px">${lastTxt}</div>
+        ${setsHtml}
+        <div class="row" style="gap:8px;margin-top:10px">
+          ${isTime
+            ? `<input id="t_${ei}" type="number" inputmode="numeric" placeholder="seconds" style="flex:1">`
+            : `${isBw?'':`<input id="w_${ei}" type="number" inputmode="decimal" placeholder="kg" style="flex:1">`}
+               <input id="r_${ei}" type="number" inputmode="numeric" placeholder="reps" style="flex:1">`}
+          <select id="rpe_${ei}" style="flex:.8"><option value="">RPE</option>${[5,6,7,8,9,10].map(n=>`<option value="${n}">${n}</option>`).join('')}</select>
+          <button class="btn sm" onclick="addSet(${ei})">Log</button>
+        </div>
+      </div>`;
+    }).join('');
+  }
+  // recent
+  const rs = db.sessions.filter(x=>x.date!==todayStr() && x.exercises.length).slice(0,6);
+  document.getElementById('recentSessions').innerHTML = rs.length
+    ? rs.map(s=>{
+        const sets = s.exercises.reduce((n,e)=>n+e.sets.length,0);
+        const names = s.exercises.map(e=>e.name.split(' ')[0]).slice(0,4).join(', ');
+        return `<div class="setrow"><span style="flex:1"><b>${niceDate(s.date)}</b><br><span class="muted">${names}</span></span><span class="muted">${sets} sets</span></div>`;
+      }).join('')
+    : '<div class="empty">No past sessions yet.</div>';
+}
+function fmtSet(st,lib){
+  if(lib.time) return `${st.t}s${st.rpe?` · RPE ${st.rpe}`:''}`;
+  if(lib.bodyweight) return `${st.r} reps${st.rpe?` · RPE ${st.rpe}`:''}`;
+  return `${st.w}kg × ${st.r}${st.rpe?` · RPE ${st.rpe}`:''}`;
+}
+function addSet(ei){
+  const s = todaySession(); const e = s.exercises[ei];
+  const lib = db.exerciseLib.find(l=>l.name===e.name)||{};
+  let set = {};
+  if(lib.time){ const t=val(`t_${ei}`); if(!t) return; set.t=+t; }
+  else { const r=val(`r_${ei}`); if(!r) return; set.r=+r; if(!lib.bodyweight){ const w=val(`w_${ei}`); set.w=w?+w:0; } }
+  const rpe=val(`rpe_${ei}`); if(rpe) set.rpe=+rpe;
+  e.sets.push(set); save(); renderWorkout();
+}
+function val(id){ const el=document.getElementById(id); return el?el.value:''; }
+function delSet(ei,si){ const s=todaySession(); s.exercises[ei].sets.splice(si,1); save(); renderWorkout(); }
+function delExercise(ei){ if(!confirm('Remove this exercise?'))return; const s=todaySession(); s.exercises.splice(ei,1); save(); renderWorkout(); }
+
+// ============ EXERCISE PICKER ============
+function openExercisePicker(){
+  const cats=[...new Set(db.exerciseLib.map(e=>e.cat))];
+  const body = cats.map(c=>`
+    <div class="tiny" style="margin:12px 0 6px">${c}</div>
+    ${db.exerciseLib.filter(e=>e.cat===c).map(e=>{
+      const last=lastDoneFor(e.name);
+      return `<div class="ex-item" onclick="pickExercise('${e.name.replace(/'/g,"\\'")}')">
+        <div class="nm">${e.name}</div>
+        ${last?`<div class="last">last ${niceDate(last.date)}: ${fmtSet(last.set,e)}</div>`:`<div class="last" style="color:var(--dim)">start ~${e.bodyweight?'bodyweight':e.start+'kg'}</div>`}
+      </div>`;
+    }).join('')}`).join('');
+  showModal(`<h3>Add Exercise</h3>
+    <input id="newExName" placeholder="Or type a new exercise name…" style="margin-bottom:6px">
+    <button class="btn sec sm" style="width:100%;margin-bottom:10px" onclick="addCustomExercise()">+ Add custom exercise</button>
+    ${body}`);
+}
+function pickExercise(name){
+  const s=todaySession();
+  if(!s.exercises.find(e=>e.name===name)) s.exercises.push({name, sets:[]});
+  save(); closeModal(); renderWorkout();
+}
+function addCustomExercise(){
+  const n=val('newExName').trim(); if(!n) return;
+  if(!db.exerciseLib.find(l=>l.name===n)) db.exerciseLib.push({name:n,cat:'Custom',start:0});
+  save(); pickExercise(n);
+}
+
+// ============ RENDER: FOOD ============
+function renderFood(){
+  const tf = db.food.filter(f=>f.date===todayStr());
+  const p = tf.reduce((n,f)=>n+f.p,0), k = tf.reduce((n,f)=>n+f.k,0);
+  const tp=db.targets.protein, tk=db.targets.kcal;
+  document.getElementById('protTotal').innerHTML = `${p}<span style="font-size:15px;color:var(--dim)">/${tp}g</span>`;
+  document.getElementById('kcalTotal').innerHTML = `${k}<span style="font-size:15px;color:var(--dim)">/${tk}</span>`;
+  document.getElementById('protBar').style.width = Math.min(100,p/tp*100)+'%';
+  document.getElementById('kcalBar').style.width = Math.min(100,k/tk*100)+'%';
+  document.getElementById('protBar').style.background = p>=tp?'var(--accent)':'var(--accent)';
+  document.getElementById('kcalBar').style.background = k>tk?'var(--warn)':'var(--accent2)';
+  document.getElementById('foodFavs').innerHTML = db.foodFavs.map((f,i)=>
+    `<div class="pill" onclick="quickFood(${i})">${f.name}<br><span style="color:var(--accent);font-size:11px">${f.p}p · ${f.k}k</span></div>`).join('');
+  document.getElementById('foodList').innerHTML = tf.length
+    ? tf.map(f=>`<div class="setrow"><span style="flex:1">${f.name}<br><span class="muted">${f.p}g protein · ${f.k} kcal</span></span><button class="del" onclick="delFood('${f.id}')">×</button></div>`).join('')
+    : '<div class="empty">Nothing logged today.</div>';
+}
+function quickFood(i){ const f=db.foodFavs[i]; db.food.unshift({id:uid(),date:todayStr(),name:f.name,p:f.p,k:f.k}); save(); renderFood(); }
+function delFood(id){ db.food=db.food.filter(f=>f.id!==id); save(); renderFood(); }
+function openFoodAdd(){
+  showModal(`<h3>Add Food</h3>
+    <label>Name</label><input id="fName" placeholder="e.g. Nasi lemak">
+    <div class="grid2" style="margin-top:10px">
+      <div><label>Protein (g)</label><input id="fP" type="number" inputmode="decimal" placeholder="0"></div>
+      <div><label>Calories</label><input id="fK" type="number" inputmode="numeric" placeholder="0"></div>
+    </div>
+    <div class="row" style="margin-top:16px;gap:10px">
+      <button class="btn sec" onclick="closeModal()">Cancel</button>
+      <button class="btn blue" onclick="saveFood()">Add</button>
+    </div>
+    <label style="margin-top:16px">Save as quick-add favourite too?</label>
+    <div class="seg"><button class="on" id="favYes" onclick="toggleFav(true)">Yes</button><button id="favNo" onclick="toggleFav(false)">No</button></div>`);
+  window._saveFav=true;
+}
+function toggleFav(v){ window._saveFav=v; document.getElementById('favYes').classList.toggle('on',v); document.getElementById('favNo').classList.toggle('on',!v); }
+function saveFood(){
+  const name=val('fName').trim(); const p=+val('fP')||0; const k=+val('fK')||0;
+  if(!name) return;
+  db.food.unshift({id:uid(),date:todayStr(),name,p,k});
+  if(window._saveFav && !db.foodFavs.find(f=>f.name===name)) db.foodFavs.push({name,p,k});
+  save(); closeModal(); renderFood();
+}
+
+// ============ STATS / WEIGHT ============
+function renderStats(){
+  const w=db.weights.slice(0,8);
+  document.getElementById('bwCurrent').innerHTML = `${db.bodyweight}<span style="font-size:15px;color:var(--dim)">kg</span>`;
+  document.getElementById('bwHistory').innerHTML = w.length
+    ? w.map((x,i)=>{ const prev=w[i+1]; const diff=prev?(x.kg-prev.kg):0;
+        const ds=diff>0?`<span style="color:var(--accent)">+${diff.toFixed(1)}</span>`:diff<0?`<span style="color:var(--bad)">${diff.toFixed(1)}</span>`:'<span class="muted">–</span>';
+        return `<div class="setrow"><span style="flex:1">${niceDate(x.date)}</span><b>${x.kg} kg</b> <span style="width:46px;text-align:right">${ds}</span></div>`;}).join('')
+    : '<div class="muted" style="font-size:13px">No weigh-ins logged yet.</div>';
+}
+function openWeighIn(){
+  showModal(`<h3>Log Weigh-in</h3>
+    <label>Bodyweight (kg)</label><input id="wKg" type="number" inputmode="decimal" value="${db.bodyweight}">
+    <div class="row" style="margin-top:16px;gap:10px">
+      <button class="btn sec" onclick="closeModal()">Cancel</button>
+      <button class="btn" onclick="saveWeigh()">Save</button>
+    </div>`);
+}
+function saveWeigh(){
+  const kg=+val('wKg'); if(!kg) return;
+  db.weights = db.weights.filter(x=>x.date!==todayStr());
+  db.weights.unshift({date:todayStr(),kg}); db.weights.sort((a,b)=>b.date.localeCompare(a.date));
+  db.bodyweight=kg; save(); closeModal(); renderStats();
+}
+
+// ============ MODAL ============
+function showModal(html){ document.getElementById('modalRoot').innerHTML=`<div class="modal" onclick="if(event.target===this)closeModal()"><div class="sheet">${html}</div></div>`; }
+function closeModal(){ document.getElementById('modalRoot').innerHTML=''; }
+
+// ============ TIMER ============
+let timerInt=null;
+function startTimer(sec){ stopTimer(); let t=sec; const el=document.getElementById('timerEl'); el.classList.remove('hide');
+  const tick=()=>{ el.textContent=`⏱ ${Math.floor(t/60)}:${String(t%60).padStart(2,'0')}`; if(t<=0){ stopTimer(); el.classList.remove('hide'); el.textContent='✓ Rest done'; if(navigator.vibrate)navigator.vibrate(400); setTimeout(()=>el.classList.add('hide'),2500); return;} t--; };
+  tick(); timerInt=setInterval(tick,1000);
+}
+function stopTimer(){ if(timerInt){clearInterval(timerInt);timerInt=null;} document.getElementById('timerEl').classList.add('hide'); }
+
+// ============ EXPORT ============
+function exportData(){ download('lyfit-backup-'+todayStr()+'.json', JSON.stringify(db,null,2)); }
+function exportCSV(){
+  let rows=[['type','date','name','a','b','c']];
+  db.sessions.forEach(s=>s.exercises.forEach(e=>e.sets.forEach(st=>rows.push(['set',s.date,e.name,st.w??'',st.r??st.t??'',st.rpe??'']))));
+  db.food.forEach(f=>rows.push(['food',f.date,f.name,f.p,f.k,'']));
+  db.weights.forEach(w=>rows.push(['weight',w.date,'',w.kg,'','']));
+  download('lyfit-'+todayStr()+'.csv', rows.map(r=>r.join(',')).join('\n'));
+}
+function download(fn,content){ const b=new Blob([content],{type:'text/plain'}); const u=URL.createObjectURL(b); const a=document.createElement('a'); a.href=u; a.download=fn; a.click(); URL.revokeObjectURL(u); }
+
+// ============ TABS ============
+function switchTab(t){
+  ['workout','food','stats'].forEach(x=>{
+    document.getElementById('view-'+x).classList.toggle('hide',x!==t);
+    document.querySelector(`.tab[data-tab="${x}"]`).classList.toggle('on',x===t);
+  });
+  if(t==='workout')renderWorkout(); if(t==='food')renderFood(); if(t==='stats')renderStats();
+}
+
+// ============ INIT ============
+document.getElementById('todayDate').textContent = new Date().toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'short'});
+renderWorkout();
+if('serviceWorker' in navigator){ navigator.serviceWorker.register('sw.js').catch(()=>{}); }
+</script>
+</body>
+</html>
