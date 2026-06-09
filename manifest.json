@@ -1,6 +1,6 @@
 {
-  "name": "LY Fit",
-  "short_name": "LY Fit",
+  "name": "LY's Fitness Tracker",
+  "short_name": "LY Fitness",
   "description": "Workout & nutrition tracker",
   "start_url": "./index.html",
   "display": "standalone",
