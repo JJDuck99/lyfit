@@ -52,6 +52,7 @@
   .tabbar{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:520px;background:#14171d;border-top:1px solid var(--line);display:flex;padding:8px 6px calc(8px + env(safe-area-inset-bottom));z-index:50}
   .tab{flex:1;text-align:center;padding:6px;color:var(--dim);font-size:11px;cursor:pointer;font-weight:600}
   .tab.on{color:var(--accent)}
+  .pridot{display:inline-block;width:6px;height:6px;background:#e0574a;border-radius:1px;margin-right:7px;vertical-align:middle;flex:none}
   .tab .ic{font-size:21px;display:block;margin-bottom:2px}
   .hide{display:none!important}
   .chip{display:inline-block;background:var(--card2);border:1px solid var(--line);border-radius:8px;padding:4px 9px;font-size:12px;margin:2px}
@@ -171,9 +172,31 @@
   </div>
 </div>
 
+<!-- ============ PROGRAM TAB ============ -->
+<div id="view-program" class="hide">
+  <div class="card">
+    <h2>Width Block</h2>
+    <div class="muted" style="font-size:13px;line-height:1.6">
+      Built from the Evolt scan, 7 Jul. Your arms sit at <b style="color:var(--txt)">21–25%</b> of their
+      optimal range; torso sits at <b style="color:var(--txt)">71%</b>. So arms and side delts get the
+      priority volume and everything else is maintenance.
+    </div>
+    <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--line);font-size:12px;color:var(--dim);line-height:1.7">
+      <span class="pridot"></span>Lateral delts, triceps, biceps — the work that's behind.<br>
+      <span style="opacity:.6">If a session runs short, keep those. Drop a fly or a row first.</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Pick today's session</h2>
+    <div id="programDays"></div>
+  </div>
+</div>
+
 <!-- ============ TAB BAR ============ -->
 <div class="tabbar">
   <div class="tab on" data-tab="workout" onclick="switchTab('workout')"><span class="ic">🏋️</span>Workout</div>
+  <div class="tab" data-tab="program" onclick="switchTab('program')"><span class="ic">📋</span>Program</div>
   <div class="tab" data-tab="food" onclick="switchTab('food')"><span class="ic">🍗</span>Food</div>
   <div class="tab" data-tab="stats" onclick="switchTab('stats')"><span class="ic">📊</span>Stats</div>
 </div>
@@ -193,19 +216,39 @@ const DEFAULTS = {
   exerciseLib: [
     {name:'Incline Chest Press', cat:'Chest', start:22},
     {name:'Flat Chest Press', cat:'Chest', start:22},
-    {name:'Lat Pull-down', cat:'Back', start:17},
-    {name:'Seated Row', cat:'Back', start:17},
+    {name:'Cable Fly', cat:'Chest', start:10},
+    {name:'Close-Grip Bench', cat:'Chest', start:20, pri:true},
     {name:'Push-ups', cat:'Chest', start:0, bodyweight:true},
+    {name:'Lat Pull-down', cat:'Back', start:17},
+    {name:'Neutral-Grip Pulldown', cat:'Back', start:17},
+    {name:'Wide-Grip Pull-up', cat:'Back', start:0, bodyweight:true},
+    {name:'Seated Row', cat:'Back', start:17},
+    {name:'Chest-Supported Row', cat:'Back', start:15},
+    {name:'Single-Arm Cable Row', cat:'Back', start:12},
+    {name:'Straight-Arm Pulldown', cat:'Back', start:12},
     {name:'Shoulder Press', cat:'Shoulders', start:12},
-    {name:'Lateral Raise', cat:'Shoulders', start:6},
-    {name:'Bicep Curl', cat:'Arms', start:8},
-    {name:'Tricep Pushdown', cat:'Arms', start:15},
+    {name:'Lateral Raise', cat:'Shoulders', start:6, pri:true},
+    {name:'Cable Lateral Raise', cat:'Shoulders', start:5, pri:true},
+    {name:'Cable Y-Raise', cat:'Shoulders', start:5},
+    {name:'Rear Delt Fly', cat:'Shoulders', start:7},
+    {name:'Face Pull', cat:'Shoulders', start:12},
+    {name:'Bicep Curl', cat:'Arms', start:8, pri:true},
+    {name:'EZ-Bar Curl', cat:'Arms', start:15, pri:true},
+    {name:'Incline DB Curl', cat:'Arms', start:7, pri:true},
+    {name:'Cable Hammer Curl', cat:'Arms', start:10, pri:true},
+    {name:'Preacher Curl', cat:'Arms', start:12, pri:true},
+    {name:'Reverse Curl', cat:'Arms', start:10, pri:true},
+    {name:'Tricep Pushdown', cat:'Arms', start:15, pri:true},
+    {name:'Rope Overhead Extension', cat:'Arms', start:12, pri:true},
+    {name:'Overhead DB Tricep Ext', cat:'Arms', start:10, pri:true},
     {name:'Leg Press', cat:'Legs', start:40},
+    {name:'Hack Squat', cat:'Legs', start:30},
     {name:'Romanian Deadlift', cat:'Legs', start:20},
     {name:'Goblet Squat', cat:'Legs', start:12},
     {name:'Leg Curl', cat:'Legs', start:15},
     {name:'Calf Raise', cat:'Legs', start:20},
     {name:'Plank', cat:'Core', start:0, bodyweight:true, time:true},
+    {name:'Hanging Leg Raise', cat:'Core', start:0, bodyweight:true},
     {name:'Battle Rope', cat:'Conditioning', start:0, bodyweight:true, time:true},
   ],
   foodFavs: [
@@ -225,8 +268,75 @@ const DEFAULTS = {
   weights: [],    // {date, kg}
 };
 
+// ============ WIDTH BLOCK PROGRAM ============
+// Built from the Evolt 360 scan (7 Jul 2026): arms sit at 21-25% of their optimal
+// range while torso sits at 71%. Exercises marked pri are the lagging work —
+// lateral delts, triceps, biceps. If a session runs short, keep those.
+const PROGRAM = {
+  A: { title:'Push', focus:'Chest · Delts · Triceps', ex:[
+    {name:'Incline Chest Press',      t:'4 × 6–10'},
+    {name:'Flat Chest Press',         t:'3 × 8–12'},
+    {name:'Shoulder Press',           t:'3 × 8–12'},
+    {name:'Cable Lateral Raise',      t:'4 × 12–20', pri:true},
+    {name:'Cable Fly',                t:'3 × 12–15'},
+    {name:'Rope Overhead Extension',  t:'4 × 10–15', pri:true},
+    {name:'Tricep Pushdown',          t:'3 × 12–15', pri:true},
+  ]},
+  B: { title:'Pull', focus:'Lat width · Biceps', ex:[
+    {name:'Wide-Grip Pull-up',        t:'4 × 6–10'},
+    {name:'Lat Pull-down',            t:'3 × 10–12'},
+    {name:'Chest-Supported Row',      t:'3 × 8–12'},
+    {name:'Straight-Arm Pulldown',    t:'3 × 12–15'},
+    {name:'Cable Lateral Raise',      t:'3 × 12–20', pri:true},
+    {name:'Rear Delt Fly',            t:'3 × 15–20'},
+    {name:'Incline DB Curl',          t:'4 × 8–12',  pri:true},
+    {name:'Cable Hammer Curl',        t:'3 × 10–15', pri:true},
+  ]},
+  C: { title:'Delts & Arms', focus:'The specialisation day', ex:[
+    {name:'Shoulder Press',           t:'4 × 8–12'},
+    {name:'Cable Lateral Raise',      t:'4 × 12–20', pri:true},
+    {name:'Cable Y-Raise',            t:'3 × 12–15'},
+    {name:'Face Pull',                t:'3 × 15–20'},
+    {name:'Close-Grip Bench',         t:'4 × 8–12',  pri:true},
+    {name:'Overhead DB Tricep Ext',   t:'3 × 10–15', pri:true},
+    {name:'Preacher Curl',            t:'3 × 10–12', pri:true},
+    {name:'Reverse Curl',             t:'2 × 12–15', pri:true},
+  ]},
+  D: { title:'Pull & Chest', focus:'Second frequency hit', ex:[
+    {name:'Neutral-Grip Pulldown',    t:'4 × 8–12'},
+    {name:'Single-Arm Cable Row',     t:'3 × 10–12'},
+    {name:'Incline Chest Press',      t:'3 × 8–12'},
+    {name:'Cable Lateral Raise',      t:'3 × 12–20', pri:true},
+    {name:'Rear Delt Fly',            t:'3 × 15–20'},
+    {name:'EZ-Bar Curl',              t:'4 × 10–15', pri:true},
+    {name:'Rope Overhead Extension',  t:'3 × 12–15', pri:true},
+  ]},
+  L: { title:'Legs', focus:'From 13 Sep — after the race', ex:[
+    {name:'Hack Squat',               t:'4 × 6–10'},
+    {name:'Romanian Deadlift',        t:'3 × 8–12'},
+    {name:'Leg Press',                t:'3 × 10–15'},
+    {name:'Leg Curl',                 t:'3 × 10–15'},
+    {name:'Calf Raise',               t:'4 × 10–15'},
+    {name:'Hanging Leg Raise',        t:'3 × 10–15'},
+  ]},
+};
+
 function load(){
-  try{ const d = JSON.parse(localStorage.getItem(DB_KEY)); return d ? {...structuredClone(DEFAULTS), ...d} : structuredClone(DEFAULTS);}
+  try{
+    const d = JSON.parse(localStorage.getItem(DB_KEY));
+    if(!d) return structuredClone(DEFAULTS);
+    const merged = {...structuredClone(DEFAULTS), ...d};
+    // Saved exerciseLib shadows DEFAULTS entirely, so newly shipped exercises would
+    // never reach an existing user. Merge by name, keeping any custom entries.
+    const have = new Set((merged.exerciseLib||[]).map(e=>e.name));
+    DEFAULTS.exerciseLib.forEach(e=>{ if(!have.has(e.name)) merged.exerciseLib.push(structuredClone(e)); });
+    // Backfill pri flags onto exercises saved before the Width Block existed.
+    DEFAULTS.exerciseLib.filter(e=>e.pri).forEach(def=>{
+      const cur = merged.exerciseLib.find(e=>e.name===def.name);
+      if(cur) cur.pri = true;
+    });
+    return merged;
+  }
   catch(e){ return structuredClone(DEFAULTS); }
 }
 function save(){ localStorage.setItem(DB_KEY, JSON.stringify(db)); }
@@ -268,8 +378,9 @@ function renderWorkout(){
           <button class="del" onclick="delSet(${ei},${si})">×</button>
         </div>`).join('');
       return `<div class="card2-block" style="background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px">
-        <div class="row between"><b style="font-size:15px">${e.name}</b>
+        <div class="row between"><b style="font-size:15px">${e.pri?'<span class="pridot"></span>':''}${e.name}</b>
           <button class="del" onclick="delExercise(${ei})">🗑</button></div>
+        ${e.target?`<div style="font-size:12px;color:var(--dim);margin:2px 0 0;font-variant-numeric:tabular-nums">target ${e.target}</div>`:''}
         <div class="last" style="font-size:12px;color:var(--accent2);margin:3px 0 6px">${lastTxt}</div>
         ${setsHtml}
         <div class="row" style="gap:8px;margin-top:10px">
@@ -430,13 +541,49 @@ function exportCSV(){
 }
 function download(fn,content){ const b=new Blob([content],{type:'text/plain'}); const u=URL.createObjectURL(b); const a=document.createElement('a'); a.href=u; a.download=fn; a.click(); URL.revokeObjectURL(u); }
 
+// ============ RENDER: PROGRAM ============
+function renderProgram(){
+  const s = todaySession();
+  const loaded = new Set(s.exercises.map(e=>e.name));
+  document.getElementById('programDays').innerHTML = Object.entries(PROGRAM).map(([k,d])=>{
+    const done = d.ex.filter(e=>loaded.has(e.name)).length;
+    const exList = d.ex.map(e=>
+      `<div class="setrow"><span style="flex:1">${e.pri?'<span class="pridot"></span>':''}${e.name}</span><span class="muted" style="font-variant-numeric:tabular-nums">${e.t}</span></div>`
+    ).join('');
+    return `<div style="background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px">
+      <div class="row between" style="align-items:baseline">
+        <b style="font-size:15px">Day ${k} · ${d.title}</b>
+        <span class="muted" style="font-size:11px">${d.focus}</span>
+      </div>
+      <div style="margin-top:8px">${exList}</div>
+      <button class="btn ${done===d.ex.length?'ghost':''} sm" style="width:100%;margin-top:10px" onclick="loadProgramDay('${k}')">
+        ${done===d.ex.length ? '✓ Already loaded' : done ? `Add remaining ${d.ex.length-done}` : 'Load into today'}
+      </button>
+    </div>`;
+  }).join('');
+}
+function loadProgramDay(k){
+  const d = PROGRAM[k]; if(!d) return;
+  const s = todaySession();
+  let added = 0;
+  d.ex.forEach(e=>{
+    if(s.exercises.some(x=>x.name===e.name)) return;
+    s.exercises.push({name:e.name, sets:[], target:e.t, pri:!!e.pri});
+    added++;
+  });
+  save();
+  if(added){ switchTab('workout'); }
+  else { renderProgram(); }
+}
+
 // ============ TABS ============
 function switchTab(t){
-  ['workout','food','stats'].forEach(x=>{
+  ['workout','program','food','stats'].forEach(x=>{
     document.getElementById('view-'+x).classList.toggle('hide',x!==t);
     document.querySelector(`.tab[data-tab="${x}"]`).classList.toggle('on',x===t);
   });
-  if(t==='workout')renderWorkout(); if(t==='food')renderFood(); if(t==='stats')renderStats();
+  if(t==='workout')renderWorkout(); if(t==='program')renderProgram();
+  if(t==='food')renderFood(); if(t==='stats')renderStats();
 }
 
 // ============ INIT ============
