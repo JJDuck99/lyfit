@@ -91,6 +91,9 @@
       <button class="btn" onclick="openExercisePicker()">+ Add Exercise</button>
       <button class="btn sec sm" onclick="startTimer(90)">⏱ Rest</button>
     </div>
+    <button class="btn sec sm" id="copyBtn" style="width:100%;margin-top:10px" onclick="copySession()">
+      📋 Copy session
+    </button>
   </div>
 
   <div class="card">
@@ -367,6 +370,8 @@ function lastDoneFor(exName){
 // ============ RENDER: WORKOUT ============
 function renderWorkout(){
   const s = todaySession();
+  const cb = document.getElementById('copyBtn');
+  if(cb) cb.textContent = '📋 Copy session';
   const totalSets = s.exercises.reduce((n,e)=>n+e.sets.length,0);
   document.getElementById('sessionMeta').textContent = totalSets ? `${s.exercises.length} ex · ${totalSets} sets` : 'empty';
   const wrap = document.getElementById('sessionExercises');
@@ -414,6 +419,44 @@ function fmtSet(st,lib){
   if(lib.time) return `${st.t}s${st.rpe?` · RPE ${st.rpe}`:''}`;
   if(lib.bodyweight) return `${st.r} reps${st.rpe?` · RPE ${st.rpe}`:''}`;
   return `${st.w}kg × ${st.r}${st.rpe?` · RPE ${st.rpe}`:''}`;
+}
+// Copy today's session as plain text, for pasting into a conversation.
+// The app has no backend: nothing leaves the phone unless it goes through here.
+const NL = String.fromCharCode(10);
+function sessionText(s){
+  if(!s || !s.exercises.length) return '';
+  const day = Object.values(PROGRAM).find(d =>
+    d.ex.every(x => s.exercises.some(e => e.name === x.name)));
+  const head = niceDate(s.date) + (day ? ' \u2014 ' + day.title : '');
+  const width = Math.max(...s.exercises.map(e => e.name.length));
+  const body = s.exercises.map(e => {
+    const lib = db.exerciseLib.find(l => l.name === e.name) || {};
+    const sets = e.sets.length ? e.sets.map(st => fmtSet(st, lib)).join(', ') : '\u2014 not done';
+    return e.name.padEnd(width) + '  ' + sets;
+  }).join(NL);
+  const n = s.exercises.reduce((t,e) => t + e.sets.length, 0);
+  return head + NL + body + NL + n + ' sets';
+}
+async function copySession(){
+  const txt = sessionText(todaySession());
+  const btn = document.getElementById('copyBtn');
+  if(!txt){ btn.textContent = 'Nothing logged yet'; setTimeout(renderWorkout, 1600); return; }
+  let ok = false;
+  try { await navigator.clipboard.writeText(txt); ok = true; }
+  catch(err){
+    // The Clipboard API needs a secure context and can be blocked outright;
+    // fall back to a hidden textarea, which still works in more places than not.
+    try {
+      const ta = document.createElement('textarea');
+      ta.value = txt; ta.setAttribute('readonly','');
+      ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0';
+      document.body.appendChild(ta); ta.select(); ta.setSelectionRange(0, txt.length);
+      ok = document.execCommand('copy'); ta.remove();
+    } catch(e2){ ok = false; }
+  }
+  btn.textContent = ok ? '\u2713 Copied \u2014 paste it to Claude' : 'Copy failed \u2014 long-press to select';
+  if(!ok) alert(txt);
+  setTimeout(renderWorkout, 2000);
 }
 function addSet(ei){
   const s = todaySession(); const e = s.exercises[ei];
