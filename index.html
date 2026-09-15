@@ -175,15 +175,20 @@
 <!-- ============ PROGRAM TAB ============ -->
 <div id="view-program" class="hide">
   <div class="card">
-    <h2>Width Block</h2>
+    <h2>Width &amp; Sub-30</h2>
     <div class="muted" style="font-size:13px;line-height:1.6">
-      Built from the Evolt scan, 7 Jul. Your arms sit at <b style="color:var(--txt)">21–25%</b> of their
-      optimal range; torso sits at <b style="color:var(--txt)">71%</b>. So arms and side delts get the
-      priority volume and everything else is maintenance.
+      13 weeks, <b style="color:var(--txt)">14 Sep – 13 Dec</b>. Three lifts here; the three runs live on
+      your calendar. Your arms sit at <b style="color:var(--txt)">21–25%</b> of their optimal range and
+      gained <b style="color:var(--txt)">+0.03 kg</b> in two months while your legs gained +0.21. So arms and
+      side delts get the priority volume, leg work stays deliberately small, and everything else is
+      maintenance.
     </div>
     <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--line);font-size:12px;color:var(--dim);line-height:1.7">
       <span class="pridot"></span>Lateral delts, triceps, biceps — the work that's behind.<br>
-      <span style="opacity:.6">If a session runs short, keep those. Drop a fly or a row first.</span>
+      <span style="opacity:.6">If a session runs short, keep those. Drop a fly or a row first.</span><br><br>
+      <b style="color:var(--txt)">Log the weight every set.</b>
+      <span style="opacity:.6">Double progression: hit the top of the rep range on every set, then add
+      2.5&nbsp;kg upper / 5&nbsp;kg lower next session. It only works if last week's number exists.</span>
     </div>
   </div>
 
@@ -212,16 +217,19 @@ const niceDate = d => new Date(d+'T00:00').toLocaleDateString('en-GB',{weekday:'
 
 const DEFAULTS = {
   bodyweight: null,
+  progVersion: 2,
   targets: { protein: 0, kcal: 0 },
   exerciseLib: [
     {name:'Incline Chest Press', cat:'Chest', start:0},
     {name:'Flat Chest Press', cat:'Chest', start:0},
+    {name:'Incline DB Press', cat:'Chest', start:0},
     {name:'Cable Fly', cat:'Chest', start:0},
     {name:'Close-Grip Bench', cat:'Chest', start:0, pri:true},
     {name:'Push-ups', cat:'Chest', start:0, bodyweight:true},
     {name:'Lat Pull-down', cat:'Back', start:0},
     {name:'Neutral-Grip Pulldown', cat:'Back', start:0},
     {name:'Wide-Grip Pull-up', cat:'Back', start:0, bodyweight:true},
+    {name:'Assisted Pull-up', cat:'Back', start:0},
     {name:'Seated Row', cat:'Back', start:0},
     {name:'Chest-Supported Row', cat:'Back', start:0},
     {name:'Single-Arm Cable Row', cat:'Back', start:0},
@@ -246,7 +254,11 @@ const DEFAULTS = {
     {name:'Romanian Deadlift', cat:'Legs', start:0},
     {name:'Goblet Squat', cat:'Legs', start:0},
     {name:'Leg Curl', cat:'Legs', start:0},
+    {name:'Walking Lunge', cat:'Legs', start:0},
     {name:'Calf Raise', cat:'Legs', start:0},
+    {name:'Pogo Hops', cat:'Plyo', start:0, bodyweight:true},
+    {name:'Box Jump', cat:'Plyo', start:0, bodyweight:true},
+    {name:'Single-Leg Bound', cat:'Plyo', start:0, bodyweight:true},
     {name:'Plank', cat:'Core', start:0, bodyweight:true, time:true},
     {name:'Hanging Leg Raise', cat:'Core', start:0, bodyweight:true},
     {name:'Battle Rope', cat:'Conditioning', start:0, bodyweight:true, time:true},
@@ -268,56 +280,41 @@ const DEFAULTS = {
   weights: [],    // {date, kg}
 };
 
-// ============ WIDTH BLOCK PROGRAM ============
-// Built from the Evolt 360 scan (7 Jul 2026): arms sit at 21-25% of their optimal
-// range while torso sits at 71%. Exercises marked pri are the lagging work —
-// lateral delts, triceps, biceps. If a session runs short, keep those.
+// ============ WIDTH & SUB-30 PROGRAM ============
+// 13-week concurrent block, 14 Sep - 13 Dec 2026. Three lifts, three runs.
+// Exercises marked pri are the lagging work - lateral delts, triceps, biceps.
+// Arms gained +0.03kg Jul->Sep while legs gained +0.21-0.25. If a session runs
+// short, keep the dotted ones.
+// Runs live on the calendar, not here: Tue easy Z2, Fri quality, Sun long.
 const PROGRAM = {
-  A: { title:'Push', focus:'Chest · Delts · Triceps', ex:[
-    {name:'Incline Chest Press',      t:'4 × 6–10'},
-    {name:'Flat Chest Press',         t:'3 × 8–12'},
-    {name:'Shoulder Press',           t:'3 × 8–12'},
-    {name:'Cable Lateral Raise',      t:'4 × 12–20', pri:true},
-    {name:'Cable Fly',                t:'3 × 12–15'},
-    {name:'Rope Overhead Extension',  t:'4 × 10–15', pri:true},
-    {name:'Tricep Pushdown',          t:'3 × 12–15', pri:true},
+  A: { day:'Mon', title:'Upper A — Delts & Arms', focus:'The priority session', ex:[
+    {name:'Shoulder Press',          t:'3 × 8–10'},
+    {name:'Cable Lateral Raise',     t:'4 × 12–15', pri:true},
+    {name:'Lateral Raise',           t:'3 × 12–15', pri:true},
+    {name:'Rope Overhead Extension', t:'3 × 10–12', pri:true},
+    {name:'Tricep Pushdown',         t:'3 × 12–15', pri:true},
+    {name:'EZ-Bar Curl',             t:'3 × 8–10',  pri:true},
+    {name:'Cable Hammer Curl',       t:'3 × 12–15', pri:true},
+    {name:'Face Pull',               t:'2 × 15'},
   ]},
-  B: { title:'Pull', focus:'Lat width · Biceps', ex:[
-    {name:'Wide-Grip Pull-up',        t:'4 × 6–10'},
-    {name:'Lat Pull-down',            t:'3 × 10–12'},
-    {name:'Chest-Supported Row',      t:'3 × 8–12'},
-    {name:'Straight-Arm Pulldown',    t:'3 × 12–15'},
-    {name:'Cable Lateral Raise',      t:'3 × 12–20', pri:true},
-    {name:'Rear Delt Fly',            t:'3 × 15–20'},
-    {name:'Incline DB Curl',          t:'4 × 8–12',  pri:true},
-    {name:'Cable Hammer Curl',        t:'3 × 10–15', pri:true},
+  L: { day:'Wed', title:'Legs + Plyometrics', focus:'Jumps first, while fresh', ex:[
+    {name:'Pogo Hops',               t:'3 × 20'},
+    {name:'Box Jump',                t:'3 × 5'},
+    {name:'Single-Leg Bound',        t:'3 × 6 /side'},
+    {name:'Leg Press',               t:'3 × 6–8'},
+    {name:'Romanian Deadlift',       t:'3 × 8–10'},
+    {name:'Walking Lunge',           t:'2 × 10 /side'},
+    {name:'Leg Curl',                t:'3 × 12'},
+    {name:'Calf Raise',              t:'4 × 12–15'},
   ]},
-  C: { title:'Delts & Arms', focus:'The specialisation day', ex:[
-    {name:'Shoulder Press',           t:'4 × 8–12'},
-    {name:'Cable Lateral Raise',      t:'4 × 12–20', pri:true},
-    {name:'Cable Y-Raise',            t:'3 × 12–15'},
-    {name:'Face Pull',                t:'3 × 15–20'},
-    {name:'Close-Grip Bench',         t:'4 × 8–12',  pri:true},
-    {name:'Overhead DB Tricep Ext',   t:'3 × 10–15', pri:true},
-    {name:'Preacher Curl',            t:'3 × 10–12', pri:true},
-    {name:'Reverse Curl',             t:'2 × 12–15', pri:true},
-  ]},
-  D: { title:'Pull & Chest', focus:'Second frequency hit', ex:[
-    {name:'Neutral-Grip Pulldown',    t:'4 × 8–12'},
-    {name:'Single-Arm Cable Row',     t:'3 × 10–12'},
-    {name:'Incline Chest Press',      t:'3 × 8–12'},
-    {name:'Cable Lateral Raise',      t:'3 × 12–20', pri:true},
-    {name:'Rear Delt Fly',            t:'3 × 15–20'},
-    {name:'EZ-Bar Curl',              t:'4 × 10–15', pri:true},
-    {name:'Rope Overhead Extension',  t:'3 × 12–15', pri:true},
-  ]},
-  L: { title:'Legs', focus:'From 13 Sep — after the race', ex:[
-    {name:'Hack Squat',               t:'4 × 6–10'},
-    {name:'Romanian Deadlift',        t:'3 × 8–12'},
-    {name:'Leg Press',                t:'3 × 10–15'},
-    {name:'Leg Curl',                 t:'3 × 10–15'},
-    {name:'Calf Raise',               t:'4 × 10–15'},
-    {name:'Hanging Leg Raise',        t:'3 × 10–15'},
+  B: { day:'Thu', title:'Upper B — Back & Chest', focus:'Lat width leads', ex:[
+    {name:'Assisted Pull-up',        t:'4 × 8–10'},
+    {name:'Seated Row',              t:'3 × 10–12'},
+    {name:'Incline DB Press',        t:'3 × 8–10'},
+    {name:'Cable Fly',               t:'3 × 12–15'},
+    {name:'Cable Lateral Raise',     t:'3 × 12–15', pri:true},
+    {name:'Incline DB Curl',         t:'3 × 10–12', pri:true},
+    {name:'Rope Overhead Extension', t:'3 × 12–15', pri:true},
   ]},
 };
 
@@ -335,6 +332,15 @@ function load(){
       const cur = merged.exerciseLib.find(e=>e.name===def.name);
       if(cur) cur.pri = true;
     });
+    // v2: the 14 Sep session showed the curl loads were too light to be a stimulus.
+    // Refresh the start hints once, then never touch them again.
+    if(merged.progVersion !== 2){
+      DEFAULTS.exerciseLib.forEach(def=>{
+        const cur = merged.exerciseLib.find(e=>e.name===def.name);
+        if(cur && !cur.custom) cur.start = def.start;
+      });
+      merged.progVersion = 2;
+    }
     return merged;
   }
   catch(e){ return structuredClone(DEFAULTS); }
@@ -552,7 +558,7 @@ function renderProgram(){
     ).join('');
     return `<div style="background:var(--card2);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px">
       <div class="row between" style="align-items:baseline">
-        <b style="font-size:15px">Day ${k} · ${d.title}</b>
+        <b style="font-size:15px">${d.day} · ${d.title}</b>
         <span class="muted" style="font-size:11px">${d.focus}</span>
       </div>
       <div style="margin-top:8px">${exList}</div>
