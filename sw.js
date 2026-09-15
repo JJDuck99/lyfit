@@ -1,5 +1,5 @@
 // LY Fit — offline service worker
-const CACHE = 'lyfit-v5';
+const CACHE = 'lyfit-v6';
 const ASSETS = ['./', './index.html', './manifest.json'];
 
 self.addEventListener('install', e => {
