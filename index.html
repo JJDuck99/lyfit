@@ -113,7 +113,7 @@
       </div>
       <div style="text-align:right">
         <div class="tiny">Calories</div>
-        <div class="big" id="kcalTotal" style="color:var(--accent2)">0<span style="font-size:15px;color:var(--dim)"></span></div>
+        <div class="big" id="kcalTotal" style="color:var(--accent2)">0</div>
       </div>
     </div>
     <div class="bar"><div id="protBar" style="width:0%;background:var(--accent)"></div></div>
@@ -218,6 +218,9 @@ const DB_KEY = 'lyfit_v1';
 const todayStr = () => new Date().toISOString().slice(0,10);
 const niceDate = d => new Date(d+'T00:00').toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'});
 
+/* Seed values are intentionally blank. This file is served publicly, so
+   real bodyweight, targets and working loads are not baked in here --
+   they are entered in the app and live only in this device's localStorage. */
 const DEFAULTS = {
   bodyweight: null,
   progVersion: 2,
@@ -481,7 +484,7 @@ function openExercisePicker(){
       const last=lastDoneFor(e.name);
       return `<div class="ex-item" onclick="pickExercise('${e.name.replace(/'/g,"\\'")}')">
         <div class="nm">${e.name}</div>
-        ${last?`<div class="last">last ${niceDate(last.date)}: ${fmtSet(last.set,e)}</div>`:`<div class="last" style="color:var(--dim)">start ~${e.bodyweight?'bodyweight':e.start+'kg'}</div>`}
+        ${last?`<div class="last">last ${niceDate(last.date)}: ${fmtSet(last.set,e)}</div>`:`<div class="last" style="color:var(--dim)">start ~${e.bodyweight?'bodyweight':(e.start?e.start+'kg':'set your own')}</div>`}
       </div>`;
     }).join('')}`).join('');
   showModal(`<h3>Add Exercise</h3>
@@ -505,12 +508,12 @@ function renderFood(){
   const tf = db.food.filter(f=>f.date===todayStr());
   const p = tf.reduce((n,f)=>n+f.p,0), k = tf.reduce((n,f)=>n+f.k,0);
   const tp=db.targets.protein, tk=db.targets.kcal;
-  document.getElementById('protTotal').innerHTML = `${p}<span style="font-size:15px;color:var(--dim)">/${tp}g</span>`;
-  document.getElementById('kcalTotal').innerHTML = `${k}<span style="font-size:15px;color:var(--dim)">/${tk}</span>`;
-  document.getElementById('protBar').style.width = Math.min(100,p/tp*100)+'%';
-  document.getElementById('kcalBar').style.width = Math.min(100,k/tk*100)+'%';
-  document.getElementById('protBar').style.background = p>=tp?'var(--accent)':'var(--accent)';
-  document.getElementById('kcalBar').style.background = k>tk?'var(--warn)':'var(--accent2)';
+  document.getElementById('protTotal').innerHTML = `${p}${tp?`<span style="font-size:15px;color:var(--dim)">/${tp}g</span>`:'<span style="font-size:15px;color:var(--dim)">g</span>'}`;
+  document.getElementById('kcalTotal').innerHTML = `${k}${tk?`<span style="font-size:15px;color:var(--dim)">/${tk}</span>`:''}`;
+  document.getElementById('protBar').style.width = (tp?Math.min(100,p/tp*100):0)+'%';
+  document.getElementById('kcalBar').style.width = (tk?Math.min(100,k/tk*100):0)+'%';
+  document.getElementById('protBar').style.background = 'var(--accent)';
+  document.getElementById('kcalBar').style.background = (tk&&k>tk)?'var(--warn)':'var(--accent2)';
   document.getElementById('foodFavs').innerHTML = db.foodFavs.map((f,i)=>
     `<div class="pill" onclick="quickFood(${i})">${f.name}<br><span style="color:var(--accent);font-size:11px">${f.p}p · ${f.k}k</span></div>`).join('');
   document.getElementById('foodList').innerHTML = tf.length
@@ -546,7 +549,7 @@ function saveFood(){
 // ============ STATS / WEIGHT ============
 function renderStats(){
   const w=db.weights.slice(0,8);
-  document.getElementById('bwCurrent').innerHTML = `${db.bodyweight}<span style="font-size:15px;color:var(--dim)">kg</span>`;
+  document.getElementById('bwCurrent').innerHTML = db.bodyweight ? `${db.bodyweight}<span style="font-size:15px;color:var(--dim)">kg</span>` : `<span style="color:var(--dim)">--</span>`;
   document.getElementById('bwHistory').innerHTML = w.length
     ? w.map((x,i)=>{ const prev=w[i+1]; const diff=prev?(x.kg-prev.kg):0;
         const ds=diff>0?`<span style="color:var(--accent)">+${diff.toFixed(1)}</span>`:diff<0?`<span style="color:var(--bad)">${diff.toFixed(1)}</span>`:'<span class="muted">–</span>';
@@ -555,7 +558,7 @@ function renderStats(){
 }
 function openWeighIn(){
   showModal(`<h3>Log Weigh-in</h3>
-    <label>Bodyweight (kg)</label><input id="wKg" type="number" inputmode="decimal" value="${db.bodyweight}">
+    <label>Bodyweight (kg)</label><input id="wKg" type="number" inputmode="decimal" value="${db.bodyweight ?? ''}">
     <div class="row" style="margin-top:16px;gap:10px">
       <button class="btn sec" onclick="closeModal()">Cancel</button>
       <button class="btn" onclick="saveWeigh()">Save</button>
