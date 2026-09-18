@@ -134,6 +134,20 @@
 
 <!-- ============ STATS TAB ============ -->
 <div id="view-stats" class="hide">
+  <div class="card" style="border:1px solid var(--warn)">
+    <h2>Backup</h2>
+    <div class="muted" style="font-size:13px;line-height:1.6">
+      Everything lives on this phone only. There's no account and no server.
+      <b style="color:var(--txt)">Deleting the home-screen icon, or clearing Safari data, erases it all.</b>
+      Back up weekly.
+    </div>
+    <div class="row" style="margin-top:12px;gap:10px">
+      <button class="btn" style="flex:1" onclick="exportAll()">Back up</button>
+      <button class="btn sec" style="flex:1" onclick="importAll()">Restore</button>
+    </div>
+    <div id="backupMsg" class="muted" style="font-size:12px;margin-top:10px;line-height:1.5"></div>
+  </div>
+
   <div class="card">
     <h2>Bodyweight</h2>
     <div class="row between" style="align-items:flex-end">
@@ -422,6 +436,44 @@ function renderWorkout(){
         </div>`;
       }).join('')
     : '<div class="empty">No past sessions yet.</div>';
+}
+// ---- Backup / restore ----
+// There is no server. This is the only way data survives losing the icon.
+function exportAll(){
+  const msg = document.getElementById('backupMsg');
+  const payload = JSON.stringify(db);
+  const name = 'lyfit-backup-' + todayStr() + '.json';
+  const blob = new Blob([payload], {type:'application/json'});
+  try {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(()=>URL.revokeObjectURL(a.href), 4000);
+  } catch(e){ /* fall through to the copy path below */ }
+  // iOS standalone mode often blocks downloads, so always offer the clipboard too.
+  navigator.clipboard.writeText(payload).then(
+    ()=>{ msg.innerHTML = '\u2713 Backed up. Saved as <b>' + name + '</b> and copied to your clipboard \u2014 paste it somewhere safe (Notes, a chat to yourself).'; },
+    ()=>{ msg.innerHTML = '\u2713 Saved as <b>' + name + '</b>. If no file appeared, tap Restore to see the raw text and copy it manually.'; }
+  );
+}
+function importAll(){
+  const msg = document.getElementById('backupMsg');
+  const raw = prompt('Paste a backup below to restore it.\n\nThis REPLACES everything currently in the app.');
+  if(raw === null) return;
+  if(!raw.trim()){ msg.textContent = 'Nothing pasted.'; return; }
+  let incoming;
+  try { incoming = JSON.parse(raw); }
+  catch(e){ msg.textContent = '\u2717 That is not a valid backup \u2014 nothing was changed.'; return; }
+  if(!incoming || !Array.isArray(incoming.sessions)){
+    msg.textContent = '\u2717 That does not look like a LyFit backup \u2014 nothing was changed.'; return;
+  }
+  const n = incoming.sessions.length;
+  if(!confirm('Restore ' + n + ' session(s)? This replaces what is in the app now.')) return;
+  db = {...structuredClone(DEFAULTS), ...incoming};
+  save();
+  msg.textContent = '\u2713 Restored ' + n + ' session(s).';
+  renderStats(); renderWorkout();
 }
 function fmtSet(st,lib){
   if(lib.time) return `${st.t}s${st.rpe?` · RPE ${st.rpe}`:''}`;
