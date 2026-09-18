@@ -415,7 +415,11 @@ function renderWorkout(){
     ? rs.map(s=>{
         const sets = s.exercises.reduce((n,e)=>n+e.sets.length,0);
         const names = s.exercises.map(e=>e.name.split(' ')[0]).slice(0,4).join(', ');
-        return `<div class="setrow"><span style="flex:1"><b>${niceDate(s.date)}</b><br><span class="muted">${names}</span></span><span class="muted">${sets} sets</span></div>`;
+        return `<div class="setrow" style="align-items:center;gap:8px">
+          <span style="flex:1"><b>${niceDate(s.date)}</b><br><span class="muted">${names}</span></span>
+          <span class="muted">${sets} sets</span>
+          <button class="btn sec sm" id="cp_${s.date}" style="padding:4px 10px" onclick="copySession('${s.date}')">📋</button>
+        </div>`;
       }).join('')
     : '<div class="empty">No past sessions yet.</div>';
 }
@@ -441,10 +445,15 @@ function sessionText(s){
   const n = s.exercises.reduce((t,e) => t + e.sets.length, 0);
   return head + NL + body + NL + n + ' sets';
 }
-async function copySession(){
-  const txt = sessionText(todaySession());
-  const btn = document.getElementById('copyBtn');
-  if(!txt){ btn.textContent = 'Nothing logged yet'; setTimeout(renderWorkout, 1600); return; }
+async function copySession(date){
+  // date omitted = today's session; a date string copies that past session instead.
+  const s = date ? db.sessions.find(x => x.date === date) : todaySession();
+  const btn = document.getElementById(date ? 'cp_' + date : 'copyBtn');
+  const txt = sessionText(s);
+  if(!txt){
+    if(btn) btn.textContent = date ? '—' : 'Nothing logged yet';
+    setTimeout(renderWorkout, 1600); return;
+  }
   let ok = false;
   try { await navigator.clipboard.writeText(txt); ok = true; }
   catch(err){
@@ -458,7 +467,9 @@ async function copySession(){
       ok = document.execCommand('copy'); ta.remove();
     } catch(e2){ ok = false; }
   }
-  btn.textContent = ok ? '\u2713 Copied \u2014 paste it to Claude' : 'Copy failed \u2014 long-press to select';
+  if(btn) btn.textContent = ok
+    ? (date ? '✓' : '✓ Copied — paste it to Claude')
+    : (date ? '✗' : 'Copy failed — long-press to select');
   if(!ok) alert(txt);
   setTimeout(renderWorkout, 2000);
 }
