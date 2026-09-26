@@ -174,7 +174,7 @@
       <span class="chip">1 · Hypertrophy / muscle mass</span>
       <span class="chip">2 · Upper strength</span>
       <span class="chip">3 · Functional</span>
-      <span class="chip" style="border-color:var(--accent2)">Protein 130g/day</span>
+      <span class="chip" style="border-color:var(--accent2)">Protein 140g/day</span>
       <span class="chip" style="border-color:var(--accent2)">Cardio (lower step-HR)</span>
     </div>
   </div>
@@ -204,8 +204,9 @@
       <span class="pridot"></span>Lateral delts, triceps, biceps — the work that's behind.<br>
       <span style="opacity:.6">If a session runs short, keep those. Drop a fly or a row first.</span><br><br>
       <b style="color:var(--txt)">Log the weight every set.</b>
-      <span style="opacity:.6">Double progression: hit the top of the rep range on every set, then add
-      2.5&nbsp;kg upper / 5&nbsp;kg lower next session. It only works if last week's number exists.</span>
+      <span style="opacity:.6">Warm up with 2 light sets that don't count. Then ONE weight for every working
+      set, no ramping up or dropping down. Progress by reps: top of the range on every set → next pin.
+      Cable numbers differ between machines, so note which one you used.</span>
     </div>
   </div>
 
@@ -237,11 +238,14 @@ const niceDate = d => new Date(d+'T00:00').toLocaleDateString('en-GB',{weekday:'
    they are entered in the app and live only in this device's localStorage. */
 const DEFAULTS = {
   bodyweight: null,
-  progVersion: 2,
+  progVersion: 3,
   targets: { protein: 0, kcal: 0 },
   exerciseLib: [
     {name:'Incline Chest Press', cat:'Chest', start:0},
     {name:'Flat Chest Press', cat:'Chest', start:0},
+    {name:'Chest Press Machine', cat:'Chest', start:0},
+    {name:'Smith Incline Press', cat:'Chest', start:0},
+    {name:'Pec Fly', cat:'Chest', start:0},
     {name:'Incline DB Press', cat:'Chest', start:0},
     {name:'Cable Fly', cat:'Chest', start:0},
     {name:'Close-Grip Bench', cat:'Chest', start:0, pri:true},
@@ -271,6 +275,7 @@ const DEFAULTS = {
     {name:'Rope Overhead Extension', cat:'Arms', start:0, pri:true},
     {name:'Overhead DB Tricep Ext', cat:'Arms', start:0, pri:true},
     {name:'Leg Press', cat:'Legs', start:0},
+    {name:'Back Squat', cat:'Legs', start:0},
     {name:'Hack Squat', cat:'Legs', start:0},
     {name:'Romanian Deadlift', cat:'Legs', start:0},
     {name:'Goblet Squat', cat:'Legs', start:0},
@@ -287,7 +292,7 @@ const DEFAULTS = {
   foodFavs: [
     {name:'Chicken breast 150g', p:45, k:240},
     {name:'2 eggs', p:13, k:140},
-    {name:'Whey scoop', p:25, k:120},
+    {name:'Chobani 6 tbsp', p:10, k:105},
     {name:'Greek yogurt 170g', p:17, k:100},
     {name:'Milk 250ml', p:8, k:120},
     {name:'Tofu 150g', p:12, k:115},
@@ -308,14 +313,14 @@ const DEFAULTS = {
 // short, keep the dotted ones.
 // Runs live on the calendar, not here: Tue easy Z2, Fri quality, Sun long.
 const PROGRAM = {
-  A: { day:'Mon', title:'Upper A — Delts & Arms', focus:'The priority session', ex:[
-    {name:'Shoulder Press',          t:'3 × 8–10'},
+  A: { day:'Mon', title:'Upper A — Delts & Arms', focus:'The priority session. Laterals first, while fresh', ex:[
     {name:'Cable Lateral Raise',     t:'4 × 12–15', pri:true},
     {name:'Lateral Raise',           t:'3 × 12–15', pri:true},
+    {name:'Shoulder Press',          t:'3 × 8–10'},
+    {name:'Barbell Curl',            t:'3 × 12 → then next weight', pri:true},
+    {name:'Cable Hammer Curl',       t:'3 × 12–15', pri:true},
     {name:'Rope Overhead Extension', t:'3 × 10–12', pri:true},
     {name:'Tricep Pushdown',         t:'3 × 12–15', pri:true},
-    {name:'Barbell Curl',            t:'3 × 8–10',  pri:true},
-    {name:'Cable Hammer Curl',       t:'3 × 12–15', pri:true},
     {name:'Face Pull',               t:'2 × 15'},
   ]},
   L: { day:'Wed', title:'Legs + Plyometrics', focus:'Jumps first, while fresh', ex:[
@@ -328,13 +333,14 @@ const PROGRAM = {
     {name:'Leg Curl',                t:'3 × 12'},
     {name:'Calf Raise',              t:'4 × 12–15'},
   ]},
-  B: { day:'Thu', title:'Upper B — Back & Chest', focus:'Lat width leads', ex:[
-    {name:'Assisted Pull-up',        t:'4 × 8–10'},
-    {name:'Seated Row',              t:'3 × 10–12'},
-    {name:'Incline DB Press',        t:'3 × 8–10'},
-    {name:'Cable Fly',               t:'3 × 12–15'},
+  B: { day:'Thu', title:'Upper B — Back & Chest', focus:'Laterals first, then back before biceps', ex:[
     {name:'Cable Lateral Raise',     t:'3 × 12–15', pri:true},
+    {name:'Lat Pull-down',           t:'4 × 8–10'},
+    {name:'Seated Row',              t:'3 × 10–12'},
+    {name:'Smith Incline Press',     t:'3 × 8–10'},
+    {name:'Pec Fly',                 t:'3 × 12–15'},
     {name:'Incline DB Curl',         t:'3 × 10–12', pri:true},
+    {name:'Barbell Curl',            t:'3 × 8–10',  pri:true},
     {name:'Rope Overhead Extension', t:'3 × 12–15', pri:true},
   ]},
 };
@@ -355,12 +361,18 @@ function load(){
     });
     // v2: the 14 Sep session showed the curl loads were too light to be a stimulus.
     // Refresh the start hints once, then never touch them again.
-    if(merged.progVersion !== 2){
+    if((merged.progVersion||0) < 2){
       DEFAULTS.exerciseLib.forEach(def=>{
         const cur = merged.exerciseLib.find(e=>e.name===def.name);
         if(cur && !cur.custom) cur.start = def.start;
       });
       merged.progVersion = 2;
+    }
+    // v3: no whey, ever. Swap the quick-add for the Chobani he actually eats.
+    if(merged.progVersion < 3){
+      merged.foodFavs = (merged.foodFavs||[]).filter(f=>f.name!=='Whey scoop');
+      if(!merged.foodFavs.some(f=>f.name==='Chobani 6 tbsp')) merged.foodFavs.push({name:'Chobani 6 tbsp', p:10, k:105});
+      merged.progVersion = 3;
     }
     return merged;
   }
