@@ -194,9 +194,9 @@
   <div class="card">
     <h2>Build block</h2>
     <div class="muted" style="font-size:13px;line-height:1.6">
-      Muscle first, from <b style="color:var(--txt)">28 Sep</b>. Four lifts here: upper on Mon, Wed and Fri,
-      legs on Thu. The two easy Z2 runs (Tue, Sun) live on your calendar. Deload weeks 4, 8 and 12: one set
-      fewer, same weights. Your arms sit at <b style="color:var(--txt)">21–25%</b> of their optimal range and
+      Muscle first. Four lifts here: upper on Mon, Wed and Fri, legs on Thu. Sanda on Tuesdays, and two
+      easy Z2 runs (Monday before lifting, plus Saturday or Wednesday) live on your calendar. Deload weeks
+      4, 8 and 12: one set fewer, same weights. Your arms sit at <b style="color:var(--txt)">21–25%</b> of their optimal range and
       gained <b style="color:var(--txt)">+0.03 kg</b> in two months while your legs gained +0.21. So arms and
       side delts get the priority volume, leg work stays deliberately small, and everything else is
       maintenance.
@@ -308,31 +308,31 @@ const DEFAULTS = {
 };
 
 // ============ BUILD BLOCK ============
-// From 28 Sep 2026: muscle first. Four lifts (Mon/Wed/Fri upper, Thu legs),
-// two Z2 runs (Tue, Sun) that live on the calendar, not here.
+// From 29 Sep 2026: muscle first. Mon Upper B (run first), Tue Sanda,
+// Wed Upper A, Thu legs, Fri Upper C. Runs and Sanda live on the calendar.
+// Monday has no laterals or overhead work: a tired trap going into Tuesday's
+// takedowns is how the 22 Sep strain happened. Those laterals moved to Friday.
 // Exercises marked pri are the lagging work - lateral delts, triceps, biceps.
-// Arms gained +0.03kg Jul->Sep while legs gained +0.21-0.25. If a session runs
-// short, keep the dotted ones.
+// If a session runs short, keep the dotted ones.
 const PROGRAM = {
-  A: { day:'Mon', title:'Upper A — Delts & Arms', focus:'The priority session. Laterals first, while fresh', ex:[
-    {name:'Cable Lateral Raise',     t:'4 × 12–15', pri:true},
-    {name:'Lateral Raise',           t:'3 × 12–15', pri:true},
-    {name:'Shoulder Press',          t:'3 × 8–10'},
-    {name:'Barbell Curl',            t:'3 × 12 → then next weight', pri:true},
-    {name:'Cable Hammer Curl',       t:'3 × 12–15', pri:true},
-    {name:'Rope Overhead Extension', t:'3 × 10–12', pri:true},
-    {name:'Tricep Pushdown',         t:'3 × 12–15', pri:true},
-    {name:'Face Pull',               t:'2 × 15'},
-  ]},
-  B: { day:'Wed', title:'Upper B — Back & Chest', focus:'Laterals first, then back before biceps', ex:[
-    {name:'Cable Lateral Raise',     t:'3 × 12–15', pri:true},
+  B: { day:'Mon', title:'Upper B — Back & Chest', focus:'After the Z2 run. No laterals: Sanda tomorrow', ex:[
     {name:'Lat Pull-down',           t:'4 × 8–10'},
     {name:'Seated Row',              t:'3 × 10–12'},
     {name:'Smith Incline Press',     t:'3 × 8–10'},
     {name:'Pec Fly',                 t:'3 × 12–15'},
     {name:'Incline DB Curl',         t:'3 × 10–12', pri:true},
     {name:'Barbell Curl',            t:'3 × 8–10',  pri:true},
-    {name:'Rope Overhead Extension', t:'3 × 12–15', pri:true},
+    {name:'Tricep Pushdown',         t:'3 × 12–15', pri:true},
+  ]},
+  A: { day:'Wed', title:'Upper A — Delts & Arms', focus:'The priority session. Laterals first, while fresh', ex:[
+    {name:'Cable Lateral Raise',     t:'4 × 12–15', pri:true},
+    {name:'Lateral Raise',           t:'3 × 12–15', pri:true},
+    {name:'Shoulder Press',          t:'3 × 8–10'},
+    {name:'Barbell Curl',            t:'3 × 6–8 at 25 kg', pri:true},
+    {name:'Cable Hammer Curl',       t:'3 × 12–15', pri:true},
+    {name:'Rope Overhead Extension', t:'3 × 10–12', pri:true},
+    {name:'Tricep Pushdown',         t:'3 × 12–15', pri:true},
+    {name:'Face Pull',               t:'2 × 15'},
   ]},
   L: { day:'Thu', title:'Legs + Plyometrics', focus:'Jumps first, while fresh', ex:[
     {name:'Pogo Hops',               t:'3 × 20'},
@@ -346,6 +346,7 @@ const PROGRAM = {
   ]},
   C: { day:'Fri', title:'Upper C — Delts, Lats & Arms', focus:'Third hit for delts and arms', ex:[
     {name:'Cable Lateral Raise',     t:'3 × 12–15', pri:true},
+    {name:'Lateral Raise',           t:'3 × 12–15', pri:true},
     {name:'Neutral-Grip Pulldown',   t:'3 × 8–10'},
     {name:'Incline DB Press',        t:'3 × 8–10'},
     {name:'Rear Delt Fly',           t:'2 × 15'},
